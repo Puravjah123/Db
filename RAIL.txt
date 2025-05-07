@@ -1,0 +1,208 @@
+create database indian_railway;
+
+ use indian_railway;
+
+create table tickets(seat_no int,passanger_name varchar(20),arrival_location varchar(20),destination_zone varchar(20));
+
+ insert into tickets(seat_no,passanger_name,arrival_location)values
+    -> (1,'Devyani','Nagpur'),
+    -> (2,'Shreya','Kharad'),
+    -> (3,'Dhanashri','Nagar'),
+    -> (4,'Dhruvi','Silvasa');
+
+       delimiter //
+mysql> create procedure assign_destination_zone(in p_seat_no int)
+    -> begin
+    -> update tickets
+    -> set destination_zone =
+    -> case
+    -> when arrival_location = 'Nagpur' then 'shirur'
+    -> when arrival_location = 'Kharad' then 'shirur'
+    -> when arrival_location = 'Nagar' then 'kholapur'
+    -> when arrival_location = 'Silvasa' then 'Pune'
+    -> else 'other zone'
+    -> end
+    -> where seat_no = p_seat_no;
+    -> end //
+
+
+       call assign_destination_zone(1);
+    -> call assign_destination_zone(2);
+    -> call assign_destination_zone(3);
+    -> call assign_destination_zone(4);
+    -> //
+
+UPDATE :     update tickets
+          -> set destination_zone = 'thailand'
+          -> where seat_no = 4;
+          -> //
+
+ALTER ADD : add table tickets add column line;
+    -> //
+
+PROCEDURE :
+     l> create procedure assign_line(in p_seat_no int)
+    -> begin
+    -> update tickets
+    -> set line =
+    -> case
+    -> when destination_zone = 'shirur' then 'red line'
+    -> when destination_zone = 'kholapur' then 'blue line'
+    -> when destination_zone = 'thailand' then 'air line'
+    -> else 'other zone'
+    -> end
+    -> where seat_no = p_seat_no;
+    -> end //
+
+CALL :
+     > call assign_line(1);
+    -> call assign_line(2);
+    -> call assign_line(3);
+    -> call assign_line(4);
+    -> //
+
+QUESTON ANS :
+
+. How to create a basic procedure?
+A: CREATE PROCEDURE proc_name() BEGIN SQL_QUERY; END;
+
+2. How to execute a procedure?
+A: CALL proc_name();
+
+3. How to pass parameters?
+A: CREATE PROCEDURE proc(IN param INT) BEGIN ... END;
+
+4. How to view procedure code?
+A: SHOW CREATE PROCEDURE proc_name;
+
+5. How to delete a procedure?
+A: DROP PROCEDURE IF EXISTS proc_name;
+
+6. How to handle errors?
+A: DECLARE EXIT HANDLER FOR SQLEXCEPTION SELECT 'Error!';
+
+7. How to return a value?
+A: CREATE PROCEDURE proc(OUT result INT) BEGIN SET result=1; END;
+
+8. How to modify a procedure?
+A: DROP and recreate it with changes.
+
+9. How to use conditions?
+A: IF condition THEN ... ELSE ... END IF;
+
+10. How to loop?
+A: WHILE condition DO ... END WHILE;
+
+Tip: Always use DELIMITER // for multi-line procedures.
+
+Need more? Ask for specific scenarios! 🚀
+
+explain me procedure
+MySQL Stored Procedures Explained Simply
+What is a Stored Procedure?
+A stored procedure is a pre-written SQL program stored in your database that performs specific tasks when called. Think of it like a reusable function in programming.
+
+Key Components of a Procedure
+1. Basic Structure
+sql
+DELIMITER //  -- Changes delimiter (since ; is used inside)
+
+CREATE PROCEDURE procedure_name(parameters)
+BEGIN
+    -- SQL statements here
+END //
+
+DELIMITER ;  -- Resets delimiter
+2. Parameter Types
+IN (default) → Passes values into the procedure (input)
+
+OUT → Returns values from the procedure (output)
+
+INOUT → Does both
+
+3. Why Use Procedures?
+✔ Reusability → Write once, call many times
+✔ Security → Restrict direct table access
+✔ Performance → Reduced network traffic
+✔ Maintenance → Centralized logic
+
+Practical Example
+1. Creating a Simple Procedure
+sql
+DELIMITER //
+CREATE PROCEDURE GetEmployee(IN emp_id INT)
+BEGIN
+    SELECT * FROM employees WHERE id = emp_id;
+END //
+DELIMITER ;
+
+-- Call it
+CALL GetEmployee(101);
+2. Procedure with Output
+sql
+DELIMITER //
+CREATE PROCEDURE CountEmployees(OUT total INT)
+BEGIN
+    SELECT COUNT(*) INTO total FROM employees;
+END //
+DELIMITER ;
+
+-- Call and get result
+CALL CountEmployees(@result);
+SELECT @result;
+3. Procedure with Logic
+sql
+DELIMITER //
+CREATE PROCEDURE CheckSalary(IN emp_id INT, OUT status VARCHAR(20))
+BEGIN
+    DECLARE sal DECIMAL;
+    SELECT salary INTO sal FROM employees WHERE id = emp_id;
+    
+    IF sal > 50000 THEN
+        SET status = 'High';
+    ELSE
+        SET status = 'Normal';
+    END IF;
+END //
+DELIMITER ;
+
+-- Usage
+CALL CheckSalary(101, @status);
+SELECT @status;
+When to Use Procedures
+Complex operations needing multiple SQL statements
+
+Frequent tasks like data validation or reports
+
+Security-sensitive operations where you want to control data access
+
+Key Notes
+Use DELIMITER when procedure contains semicolons
+
+Variables are declared with DECLARE
+
+Parameters make procedures flexible
+
+DROP PROCEDURE IF EXISTS before recreating
+
+Example of a complete workflow:
+
+sql
+DROP PROCEDURE IF EXISTS UpdateSalary;
+DELIMITER //
+CREATE PROCEDURE UpdateSalary(IN emp_id INT, IN raise_percent DECIMAL(5,2))
+BEGIN
+    UPDATE employees 
+    SET salary = salary * (1 + raise_percent/100)
+    WHERE id = emp_id;
+END //
+DELIMITER ;
+
+CALL UpdateSalary(101, 10.0);  -- Gives 10% raise
+
+
+The DELIMITER command in MySQL changes the standard semicolon (;) terminator to something else temporarily. This is crucial when creating stored procedures, functions, or triggers because they contain multiple SQL statements that already use semicolons.
+
+DELIMITER ; ---- END
+
+
