@@ -1,0 +1,225 @@
+1. Header Includes and Global Variables
+cpp
+#include <GL/freeglut.h>  // Includes OpenGL Utility Toolkit for window management
+#include <iostream>       // For input/output operations
+
+int r, xc, yc, x, y;     // r=radius, xc/yc=center coordinates, x/y=current pixel coordinates
+float p;                  // Decision parameter for Bresenham's algorithm
+
+
+2. putPixel Function
+cpp
+void putPixel(int px, int py)
+{
+    glBegin(GL_POINTS);          // Begin drawing points
+    glVertex2f((float)px, (float)py);  // Draw a single point at (px, py)
+    glEnd();                     // End drawing points
+}
+This function draws a single pixel at the specified coordinates.
+
+
+3. plotPoints Function (8-Way Symmetry)
+cpp
+void plotPoints(int px, int py)
+{
+    // Draws 8 symmetric points for each calculated point to form a complete circle
+    putPixel(xc + px, yc + py);  // Octant 1
+    putPixel(xc + py, yc + px);  // Octant 2
+    putPixel(xc + py, yc - px);  // Octant 3
+    putPixel(xc + px, yc - py);  // Octant 4
+    putPixel(xc - px, yc - py);  // Octant 5
+    putPixel(xc - py, yc - px);  // Octant 6
+    putPixel(xc - px, yc + py);  // Octant 7
+    putPixel(xc - py, yc + px);  // Octant 8
+}
+This function uses circle symmetry to plot 8 points for each calculated point, covering all octants.
+
+
+
+4. drawCircle Function (Bresenham's Algorithm)
+cpp
+void drawCircle()
+{
+    // Draw coordinate axes
+    glBegin(GL_LINES); 
+    glVertex2f(-640.0F, 0);  // X-axis from left to right
+    glVertex2f(640.0F, 0); 
+    glVertex2f(0, -480.0F);   // Y-axis from bottom to top
+    glVertex2f(0, 480.0F); 
+    glEnd();
+    
+    // Initialize Bresenham's algorithm parameters
+    p = 1.25F - (float)r;  // Initial decision parameter
+    x = 0, y = r;           // Start at top of circle
+    
+    // Main algorithm loop
+    while (x < y) { 
+        plotPoints(x, y);    // Plot the current points
+        
+        // Update decision parameter
+        if (p < 0) {
+            p += 2.0F * (float)x + 1.0F;  // Move horizontally
+        }
+        else if (p >= 0) {
+            --y;                          // Move diagonally
+            p += 2.0F * (float)(x - y) + 1.0F;
+        }
+        ++x;  // Always increment x
+    }
+    
+    glFlush();  // Force execution of OpenGL commands
+}
+This implements Bresenham's circle drawing algorithm, which efficiently determines which pixels to plot.
+
+
+
+5. init Function (OpenGL Initialization)
+cpp
+void init()
+{
+    // Set up orthographic projection (2D coordinate system)
+    glOrtho(-640.0, 640.0, -480.0, 480.0, -1.0, 1.0); 
+    
+    // Set clear color to blue and clear the screen
+    glClearColor(0.0F, 0.0F, 1.0F, 0.0F);
+    glClear(GL_COLOR_BUFFER_BIT); 
+    
+    // Set drawing color to white
+    glColor3f(1.0F, 1.0F, 1.0F);
+}
+Initializes OpenGL settings for our 2D drawing.
+
+
+
+6. main Function (Program Entry Point)
+cpp
+int main(int argc, char **argv)
+{
+    // Get user input for circle parameters
+    std::cout << "Enter radius: "; 
+    std::cin >> r;
+    std::cout << "Enter X coordinate of center: "; 
+    std::cin >> xc;
+    std::cout << "Enter Y coordinate of center: "; 
+    std::cin >> yc;
+    
+    // Scale up coordinates (likely for higher resolution)
+    r = r * 16; 
+    xc = xc * 16; 
+    yc = yc * 16;
+    
+    // Initialize GLUT
+    glutInit(&argc, argv); 
+    glutInitDisplayMode(GLUT_SINGLE);  // Single buffer mode
+    glutInitWindowSize(640, 480);      // Window size
+    glutInitWindowPosition(400, 150);  // Window position
+    glutCreateWindow("Bresenham's Circle Drawing Algorithm"); 
+    
+    // Initialize OpenGL and start main loop
+    init();
+    glutDisplayFunc(drawCircle);  // Set display callback
+    glutMainLoop();              // Enter event processing loop
+    
+    return 0;
+}
+Key Notes:
+The code implements Bresenham's circle algorithm which is efficient as it uses only integer arithmetic.
+
+The 8-way symmetry reduces calculations by only computing points for one octant.
+
+The scaling (×16) is likely used to allow for sub-pixel precision in the input coordinates.
+
+OpenGL's coordinate system has (0,0) at the center of the window in this setup.
+
+The decision parameter p determines whether to move straight right or diagonally down-right at each step.
+
+
+Q: What library is used for OpenGL window management in this code?
+A: GL/freeglut.h
+
+Q: What is the purpose of the putPixel() function?
+A: To draw a single pixel at specified coordinates.
+
+Q: Why does plotPoints() draw 8 points for each calculated position?
+A: To exploit circle symmetry and cover all octants.
+
+Q: What is the initial value of the decision parameter p in Bresenham's algorithm?
+A: 1.25F - (float)r
+
+Q: What does p < 0 indicate in the algorithm?
+A: The next pixel should be plotted horizontally (x+1).
+
+Q: Why are input values multiplied by 16 before drawing?
+A: To allow sub-pixel precision in circle positioning.
+
+Q: What OpenGL function forces execution of drawing commands?
+A: glFlush()
+
+Q: What color is used for drawing the circle in this program?
+A: White (glColor3f(1.0F, 1.0F, 1.0F))
+
+Q: What is drawn before the circle in the display function?
+A: Coordinate axes (X and Y axes)
+
+Q: Which GLUT display mode is used in this program?
+A: Single buffer mode (GLUT_SINGLE)
+
+Q: What is the purpose of glOrtho() in this code?
+A: To set up a 2D orthographic projection coordinate system.
+
+Q: What does the glClearColor() function specify?
+A: The background color (blue in this case).
+
+Q: Why is glBegin(GL_POINTS) used in putPixel()?
+A: To specify that we want to draw individual points.
+
+Q: What mathematical concept is exploited by plotting 8 symmetric points?
+A: Circle symmetry in all eight octants.
+
+Q: What is the range of x-values calculated in the main algorithm loop?
+A: From 0 to the point where x equals y (x < y).
+
+Q: What type of arithmetic does Bresenham's algorithm primarily use?
+A: Integer arithmetic (for efficiency).
+
+Q: What happens when the decision parameter p >= 0?
+A: The algorithm moves diagonally (x+1, y-1).
+
+Q: What is the purpose of multiplying inputs by 16?
+A: To provide higher resolution positioning (fixed-point scaling).
+
+Q: Which OpenGL function is used to set the drawing color to white?
+A: glColor3f(1.0F, 1.0F, 1.0F)
+
+Q: What does glutInitDisplayMode(GLUT_SINGLE) specify?
+A: Single-buffered display mode.
+
+Q: What is the starting point for drawing the circle?
+A: (0, r) - the topmost point of the circle.
+
+Q: What is updated in the p < 0 case?
+A: Only the x coordinate is incremented.
+
+Q: What is the window size set by glutInitWindowSize()?
+A: 640x480 pixels.
+
+Q: What is the purpose of glVertex2f()?
+A: To specify a vertex (point) coordinate.
+
+Q: What does the decision parameter p represent?
+A: The relative position of the midpoint between candidate pixels.
+
+Q: Why is y decremented when p >= 0?
+A: To move diagonally inward toward the circle's boundary.
+
+Q: What coordinate system is used in this implementation?
+A: Cartesian with origin at window center.
+
+Q: What is the purpose of glutMainLoop()?
+A: To start the GLUT event processing loop.
+
+Q: How many points are actually calculated in each iteration?
+A: Only one point per iteration (plus 7 symmetric points).
+
+Q: What is the advantage of using Bresenham's algorithm?
+A: It draws circles efficiently using only integer operations.
